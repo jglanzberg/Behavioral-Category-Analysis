@@ -32,7 +32,9 @@ trial_length = 1100;
 v_b_ths = 0.7;
 num_parts = 15;
 
-
+time_for_retrieval_after_delivery = 10; % in frames, in our case this was 1s
+% For the various fixed parameters please check comments below for how to
+% match the code to your dataset and trial structure. 
 
 
 
@@ -123,7 +125,7 @@ resting = cellfun(@(X) keepConsecutiveTrue(~X,min_resting_len),locomotion,'Unifo
 
 near_lever = distance(1:3,:);
 
-
+% Check near the lever for 2 seconds prior to lever press. 2s = 20 frames 
 s2lp = registration_code.eventVector(tracking_data.lvr_food,tracking_data.timestamps,-20,trial_length,0);
 %Lever press, 2 seconds before and near port
 profile(1,:) = cellfun(@(X,Y) X.*Y,near_lever(1,:)',s2lp,'UniformOutput',false);
@@ -141,12 +143,14 @@ profile(5,:) = cellfun(@(X,Y,Z) X.*Y.*Z,near_lever(2,:)',ths_active,ths_slowing,
 
 % Pellet retrieval
 % 1s after BB - follow proc for calculating Bb when not available
-retr_1 = registration_code.eventVector(tracking_data.retrieval,tracking_data.timestamps,10,trial_length,0);
+retr_1 = registration_code.eventVector(tracking_data.retrieval,tracking_data.timestamps,time_for_retrieval_after_delivery,trial_length,0);
 %retrieval
 
 
 
-% Consumption phase
+% Consumption phase can only occur for at most 9s after the retrieval. 9s =
+% 90 frames. It must occur at least 1 full second after it was delievered.
+% 1s = 10 frames.
 consump = registration_code.eventVector(tracking_data.retrieval,tracking_data.timestamps,90,trial_length,10);
 
 profile(6,:) = cellfun(@(X,Y) X.*Y,consump,resting,'UniformOutput',false);
@@ -163,8 +167,6 @@ profile(10,:) = locomotion;
 profile(3,:) = rearing;
 profile(11,:) = resting;
 
-
-% 13 is missing
 
 %Hl off
 HL_on = profiles.twoPointVector(tracking_data.HL_on,tracking_data.HL_off,trial_length);
