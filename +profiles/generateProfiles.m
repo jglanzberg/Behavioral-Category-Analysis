@@ -40,7 +40,6 @@ time_for_retrieval_after_delivery = 10; % in frames, in our case this was 1s
 
 for x = 1:numel(head_pos)
 	if ~isempty(head_pos{x})
-		head_pos{x} = cat(3,head_pos{x}.x,head_pos{x}.y,head_pos{x}.p);
 		head_pos{x} = [ head_pos{x};nan(trial_length - size( head_pos{x},1),num_parts,3)];
 		head_pos{x} = head_pos{x}(:,head_pieces,1:2);
 
