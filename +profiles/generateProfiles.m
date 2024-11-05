@@ -11,14 +11,11 @@ function [profile,raw_distances] = generateProfiles(rois,tracking_data,head_piec
 
 head_pos = tracking_data.int;
 
-
-
 body_pos = head_pos;
 avg_head_pos =cell(height(head_pos),1);
 avg_body_pos =avg_head_pos;
 
-% head_pieces = [1:4,15];
-% body_pieces = [5:10];
+
 velocity_h = cell(numel(head_pos),1);
 velocity_b = cell(numel(head_pos),1);
 slowing = cell(numel(head_pos),1);
@@ -63,12 +60,10 @@ for x = 1:numel(head_pos)
 		velocity_b{x} = [nan(1,1);vecnorm(median(movmean(diff(body_pos{x},1,1),11,1,'omitnan'),2,'omitnan'),2,3)];
 
 
-		% seems like 15 is a better ths
 		active{x} = [nan(1,1);median(movmax(vecnorm(diff(head_pos{x},1,1),2,3),21,1,'omitnan'),2,'omitnan')];
 
 
 
-		% less than 2 seems good
 		slowing{x} = [nan(1,1);mean(movmin(vecnorm(diff(body_pos{x},1,1),2,3),7,1,'omitnan'),2,'omitnan')];
 
 
@@ -92,7 +87,8 @@ for x = 1:numel(head_pos)
 
 end
 
-
+%  The constants used are tuned for our video sampling rate of 10 frames a
+% second. 2 and 5 are relative to the moving means of the relevant parts.
 ths_slowing = cellfun(@(X) X <= 2,slowing,'UniformOutput',false);
 ths_active = cellfun(@(X) X >= 5,active,'UniformOutput',false);
 
@@ -114,7 +110,12 @@ end
 
 
 locomotion = cellfun(@(X) X > v_b_ths,velocity_b,'UniformOutput',false);
-resting = cellfun(@(X) [zeros(98,1);keepConsecutiveTrue(~X(99:1051),min_resting_len);zeros(49,1)],locomotion,'UniformOutput',false);
+
+% When negating locomotion you must be sure to account for frames where the
+% house light is off. By definition those frames won't have motion and by
+% the line below would be labeled as resting. This is impossible to know
+% and must be corrected for
+resting = cellfun(@(X) keepConsecutiveTrue(~X,min_resting_len),locomotion,'UniformOutput',false);
 
 
 

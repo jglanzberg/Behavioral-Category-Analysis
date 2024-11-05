@@ -6,6 +6,9 @@ function [profile,raw_distances] = generateProfiles(rois,tracking_data,head_piec
 % * cut_off is the number of pixels in uniform space away from the position that the subject can be while still being considered "near" the ROI
 
 
+% The constants used are tuned for our video sampling rate of 10 frames a
+% second
+
 head_pos = tracking_data.int;
 
 
@@ -30,22 +33,22 @@ l = 119;
 trial_length = 1100;
 
 v_b_ths = 0.7;
+num_parts = 15;
 
-% The constants used are tuned for our video sampling rate of 10 frames a
-% second
+
 
 
 
 for x = 1:numel(head_pos)
 	if ~isempty(head_pos{x})
 		head_pos{x} = cat(3,head_pos{x}.x,head_pos{x}.y,head_pos{x}.p);
-		head_pos{x} = [ head_pos{x};nan(trial_length - size( head_pos{x},1),15,3)];
+		head_pos{x} = [ head_pos{x};nan(trial_length - size( head_pos{x},1),num_parts,3)];
 		head_pos{x} = head_pos{x}(:,head_pieces,1:2);
 
 
 
 		body_pos{x} = cat(3,body_pos{x}.x,body_pos{x}.y,body_pos{x}.p);
-		body_pos{x} = [ body_pos{x};nan(trial_length - size( body_pos{x},1),15,3)];
+		body_pos{x} = [ body_pos{x};nan(trial_length - size( body_pos{x},1),num_parts,3)];
 		body_pos{x} = body_pos{x}(:,body_pieces,1:2);
 
 		avg_head_pos{x} = squeeze(mean(head_pos{x},2,'omitnan'));
@@ -88,6 +91,8 @@ for x = 1:numel(head_pos)
 	rearing{x} = outsideg&insideb;
 
 end
+
+% 
 ths_slowing = cellfun(@(X) X <= 2,slowing,'UniformOutput',false);
 ths_active = cellfun(@(X) X >= 5,active,'UniformOutput',false);
 
